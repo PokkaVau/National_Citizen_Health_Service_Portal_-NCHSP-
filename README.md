@@ -1,90 +1,93 @@
+# National Citizen Health Service Portal (NCHSP)
 
+A comprehensive web-based platform designed to digitize and streamline healthcare services for citizens. The NCHSP bridges the gap between patients, doctors, hospitals, and blood banks, creating a unified ecosystem for local healthcare management.
 
-# 🏥 National Citizen Health Service Portal (NCHSP)
+## 🚀 Overview
 
-A people‑first, web‑based healthcare platform built to make everyday health services simpler, faster, and more connected.
-
-NCHSP brings **patients, doctors, hospitals, and blood banks** together in one unified system—reducing paperwork, saving time, and improving access to care, especially at the local level.
-
----
-
-## 🌍 What is NCHSP?
-
-The **National Citizen Health Service Portal (NCHSP)** is designed to digitize core healthcare services that citizens use regularly. From booking a doctor’s appointment to accessing medical reports or requesting blood in emergencies, everything happens in one place.
-
-The goal is simple: **less friction, better coordination, and faster healthcare delivery**.
-
----
+The **National Citizen Health Service Portal (NCHSP)** allows users to book appointments, manage medical reports, request blood, and view information about health camps. It simplifies the patient journey from diagnosis to medication and facilitates emergency response through a centralized blood donor network.
 
 ## ✨ Key Features
 
-### 👤 For Patients
+### For Patients
+- **Secure Registration & Profile**: Manage personal details and health metrics (Height, Weight, Blood Group).
+- **Appointment Booking**: Browse doctors by specialization, view availability, and book slots.
+- **Blood Request System**: Post blood requests, view status (Pending/Approved), and find potential donors.
+- **Digital Medical Records**: Securely access and download diagnostic reports uploaded by labs/admins.
+- **Health Camps**: View upcoming free health checkup camps with location details.
+- **Medication Tracking**: Track daily prescriptions and set reminders.
 
-* **Secure Account & Health Profile**
-  Store personal details and basic health info like height, weight, and blood group.
+### For Doctors
+- **Doctor Dashboard**: Overview of daily appointments and patient statistics.
+- **Schedule Management**: Define available time slots for patient bookings.
+- **Patient Care**: View patient history and write digital prescriptions.
+- **Assistant Management**: Add and manage personal assistants to help with workflow.
 
-* **Doctor Appointment Booking**
-  Find doctors by specialization, check availability, and book appointments easily.
+### For Administrators
+- **System Monitoring**: Dashboard with key metrics (Total Doctors, Patients, Appointments).
+- **User & Doctor Management**: Verify, approve, or remove user and doctor accounts.
+- **Blood Request Management**: Approve or reject blood donation requests.
+- **Health Camp Management**: Create and update health camp events and upload cover photos.
+- **Report Management**: Upload patient diagnostic reports.
 
-* **Blood Request & Donor Network**
-  Post blood requests, track approval status, and connect with potential donors quickly.
+## 🛠️ Technology Stack
 
-* **Digital Medical Records**
-  Access and download lab reports uploaded by admins or diagnostic centers—anytime, anywhere.
+- **Frontend**: HTML5, JavaScript, Tailwind CSS (via CDN)
+- **Backend**: PHP
+- **Database**: MySQL
+- **AI Integration**: Groq API (for AI-powered summaries and features)
+- **Design**: Vanilla CSS & Tailwind for a modern, responsive UI
 
-* **Health Camps Information**
-  Stay updated on upcoming free health checkup camps with dates and locations.
+## ⚙️ Installation & Setup
 
-* **Medication Tracking**
-  View daily prescriptions and keep track of ongoing medications with reminders.
+### Prerequisites
+- **XAMPP** or **WAMP** server (or any PHP/MySQL environment).
+- **Git** (optional, for cloning).
 
----
+### Steps
 
-### 🩺 For Doctors
+1.  **Clone the Repository**
+    ```bash
+    git clone <repository-url>
+    # OR download and extract the zip to your htdocs folder
+    ```
+    Ensure the project folder is named `dbms` (or update your URL accordingly).
 
-* **Doctor Dashboard**
-  Quick overview of daily appointments and patient activity.
+2.  **Database Configuration**
+    - Start Apache and MySQL modules in XAMPP.
+    - Go to **phpMyAdmin** (`http://localhost/phpmyadmin`).
+    - Create a new database named `nchsp_db`.
+    - Import the `database/nchsp_db.sql` file provided in the project.
 
-* **Schedule & Slot Management**
-  Set available time slots for patient bookings.
+3.  **Environment Setup**
+    - The project uses a `.env` file for configuration.
+    - Ensure the `.env` file exists in the root directory with the following settings (adjust if your DB credentials differ):
+      ```env
+      DB_HOST=localhost
+      DB_NAME=nchsp_db
+      DB_USER=root
+      DB_PASS=
+      GROQ_API_KEY=your_groq_api_key_here
+      GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
+      ```
 
-* **Patient History & Prescriptions**
-  Access patient records and issue digital prescriptions securely.
+4.  **Run the Application**
+    - Open your browser and navigate to:
+      `http://localhost/dbms/`
 
-* **Assistant Management**
-  Add personal assistants to help manage appointments and workflow.
+## 📂 Project Structure
 
----
+- `admin/` - Admin dashboard and management scripts.
+- `doctor/` - Doctor portal and schedule management.
+- `user/` - Patient dashboard and appointment features.
+- `config/` - Database connection and configuration files.
+- `database/` - SQL schema and migration files.
+- `uploads/` - Directory for uploaded reports and images.
+- `index.php` - Landing page.
 
-### 🛠️ For Administrators
+## 🤝 Contributing
 
-* **System Overview Dashboard**
-  Monitor key metrics like total users, doctors, and appointments.
+Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
 
-* **User & Doctor Verification**
-  Approve, manage, or remove accounts to maintain system integrity.
+## 📄 License
 
-* **Blood Request Control**
-  Review and approve/reject blood donation requests.
-
-* **Health Camp Management**
-  Create, update, and promote health camps with images and details.
-
-* **Report Uploading**
-  Upload diagnostic reports for patients securely.
-
----
-
-## 🛠️ Tech Stack
-
-* **Frontend**: HTML5, JavaScript, Tailwind CSS (CDN)
-* **Backend**: PHP
-* **Database**: MySQL
-* **AI Integration**: Groq API (for AI‑powered summaries and smart features)
-* **UI Design**: Tailwind CSS + Vanilla CSS for a clean, responsive experience
-
----
-
-
-✨ *Built with the vision of making healthcare more accessible, organized, and citizen‑friendly.*
-
+This project is developed for educational and public service purposes.
