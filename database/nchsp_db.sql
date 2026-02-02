@@ -1,27 +1,11 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Jan 14, 2026 at 10:54 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
 
---
--- Database: `nchsp_db`
---
-
--- --------------------------------------------------------
 
 --
 -- Table structure for table `admins`
@@ -35,18 +19,9 @@ CREATE TABLE `admins` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `admins`
---
 
-INSERT INTO `admins` (`id`, `username`, `password`, `role`, `created_at`) VALUES
-(5, 'admin_user', '$2y$10$Arbq2jmhCJYN9SNkw59SoO6A/eC3QQGLaPij9bzPgDNgyArbOBRHa', 'super_admin', '2026-01-06 08:17:39'),
-(6, 'test_doc_1767688446', '$2y$10$jywi/EFVNmX91DZ3UJeq.um7wtfcU2xeX61XfOqIIa/L8a6Afhdyy', 'doctor', '2026-01-06 08:34:06'),
-(7, 'khalid_boss', '$2y$10$Zxt/0/9.OAeuYp1FB190AeqCZIKh02JgrsvtsHNkAv5je2TbXwhnm', 'doctor', '2026-01-06 08:36:12'),
-(8, '123456', '$2y$10$Xlm2ZBdFbCS8AOhHNBUW/eZxvdON5cpEP5LsauR1hWTm7WXonWVAK', 'doctor', '2026-01-06 08:41:07'),
-(9, 'Khalid', '$2y$10$OItNxhgZuB7Q/CDV3UuX1u0Epm3SFtWEDg/3UjwFMVFc./RF3/r0q', 'doctor', '2026-01-11 03:29:23');
 
--- --------------------------------------------------------
+
 
 --
 -- Table structure for table `appointments`
@@ -62,19 +37,8 @@ CREATE TABLE `appointments` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `appointments`
---
 
-INSERT INTO `appointments` (`id`, `user_id`, `doctor_id`, `appointment_date`, `description`, `status`, `created_at`) VALUES
-(1, 1, 1, '2026-01-07 09:34:06', 'Test Checkup', 'pending', '2026-01-06 08:34:06'),
-(2, 4, 2, '2026-01-15 02:44:00', 'edxfcghvjk', 'pending', '2026-01-06 08:43:07'),
-(3, 4, 3, '2026-01-01 02:44:00', 'dfghjbj', 'completed', '2026-01-06 08:43:43'),
-(4, 5, 2, '2026-01-14 12:31:00', 'jbfkhbervnerfjvbhjerbvhqebvkqbefhvewio', 'pending', '2026-01-11 03:24:09'),
-(5, 5, 4, '2026-01-11 12:30:00', '', 'completed', '2026-01-11 03:30:07'),
-(6, 6, 4, '2026-01-11 00:33:00', '', 'completed', '2026-01-11 03:34:38');
 
--- --------------------------------------------------------
 
 --
 -- Table structure for table `blood_requests`
@@ -109,15 +73,9 @@ CREATE TABLE `diagnostics` (
   `since_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `diagnostics`
---
 
-INSERT INTO `diagnostics` (`id`, `user_id`, `condition_name`, `doctor_name`, `since_date`) VALUES
-(1, 1, 'Hypertension Stage 1', 'Dr. Smith', '2023-08-01'),
-(2, 1, 'Seasonal Allergies', 'Dr. House', '2022-03-15');
 
--- --------------------------------------------------------
+
 
 --
 -- Table structure for table `doctors`
@@ -131,17 +89,7 @@ CREATE TABLE `doctors` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `doctors`
---
 
-INSERT INTO `doctors` (`id`, `admin_id`, `name`, `specialization`, `created_at`) VALUES
-(1, 6, 'Dr. Test', 'General', '2026-01-06 08:34:06'),
-(2, 7, 'Khalid', 'Child', '2026-01-06 08:36:12'),
-(3, 8, 'zayed iqbal', 'zs', '2026-01-06 08:41:07'),
-(4, 9, 'Dr. S. M. Khalid Mahmud', 'Child', '2026-01-11 03:29:23');
-
--- --------------------------------------------------------
 
 --
 -- Table structure for table `health_camps`
@@ -158,15 +106,8 @@ CREATE TABLE `health_camps` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `health_camps`
---
 
-INSERT INTO `health_camps` (`id`, `name`, `location`, `camp_date`, `description`, `google_map_link`, `contact_number`, `created_at`) VALUES
-(1, 'Project_DBMS', 'jkt', '2026-01-22', 'asdfgh', 'https://www.google.com/maps/@23.7966476,90.4429568,3209m/data=!3m1!1e3?entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoASAFQAw%3D%3D', 'DSD', '2026-01-06 08:21:38'),
-(2, 'WCC Health Camp', 'Jhalokathi Govt. High School', '2026-01-10', 'Free health camp, where people can free of cost test their blood pressure, diabetes test and many more.', 'https://maps.app.goo.gl/kTvLdKR1uDMuEvZk9', '01755768595', '2026-01-06 08:48:56');
 
--- --------------------------------------------------------
 
 --
 -- Table structure for table `medications`
@@ -183,9 +124,7 @@ CREATE TABLE `medications` (
   `color_class` varchar(20) DEFAULT 'blue'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `medications`
---
+
 
 INSERT INTO `medications` (`id`, `user_id`, `name`, `dosage`, `frequency`, `capsules_left`, `total_capsules`, `color_class`) VALUES
 (1, 1, 'Amoxicillin', '500mg', 'Daily', 2, 10, 'orange'),
@@ -207,9 +146,7 @@ CREATE TABLE `reminders` (
   `is_completed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `reminders`
---
+
 
 INSERT INTO `reminders` (`id`, `user_id`, `title`, `time`, `description`, `type`, `is_completed`) VALUES
 (1, 1, 'Dentist Appointment', '10:00 AM', 'Dr. Strange • Room 302', 'appointment', 0),
@@ -234,16 +171,9 @@ CREATE TABLE `reports` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `reports`
---
 
-INSERT INTO `reports` (`id`, `user_id`, `test_name`, `test_date`, `result_value`, `reference_range`, `report_file`, `doctor_name`, `created_at`) VALUES
-(1, 4, 'cbc ', '2026-01-08', 'wdferg', '4521', 'uploads/1767687553_Gd_35364493064232.pdf', 'sdfee', '2026-01-06 08:19:13'),
-(2, 2, 'CBC', '2026-01-10', '9000', '40000-110000', 'uploads/1768101685_Diagnostic_Report_Munna.pdf', 'Dr. Sayem Sayeed', '2026-01-11 03:21:25'),
-(3, 5, 'Blood', '2026-01-11', 'Good', '', 'uploads/1768102699_Diagnostic_Report_Munna.pdf', 'sdfee', '2026-01-11 03:38:19');
 
--- --------------------------------------------------------
+
 
 --
 -- Table structure for table `users`
@@ -262,19 +192,7 @@ CREATE TABLE `users` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `users`
---
 
-INSERT INTO `users` (`id`, `name`, `dob`, `voter_id`, `mobile`, `password`, `weight`, `height`, `blood_type`, `created_at`) VALUES
-(1, 'Sarah Connor', '1985-05-15', 'VID123456789', '01700000000', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 68.50, 172.00, 'A+', '2026-01-06 07:05:23'),
-(2, 'Munna', '2026-01-09', '25144121', '544', '$2y$10$FY6f.aqK9m1AbxH0uNpBzeTKbSXvE3v8vBv72J8ReH7LpVsOgPELO', 65.00, 170.00, 'O+', '2026-01-06 07:20:44'),
-(3, 'Zobaer', '2026-01-22', '5456622', '01993192365', '$2y$10$WjgUMLDMDaNRtx5ZWnt9NewJAsOJz.Dlhd2ADp5OY5bpniD16d9PG', 65.00, 170.00, 'O+', '2026-01-06 08:05:39'),
-(4, 'zayed iqbal', '2026-01-08', '565542145456124512', '255', '$2y$10$0gi43AQ.brujMfz2gegUqemiewoXYj7glpbqBxeuoMBYHYBk0pTOu', 45.00, 142.00, 'AB+', '2026-01-06 08:10:13'),
-(5, 'Mashruba Tammi', '2002-10-24', '656211', '01666666666', '$2y$10$nrggueZ0qShjzgnjwB/lReWv529VyNbCizsUurinFU6aV7lQ8El9K', 55.00, 175.00, 'B+', '2026-01-11 03:23:27'),
-(6, 'zayed iqbal', '2026-01-11', '12345', '8rt78r', '$2y$10$h0qgITKTkyYxMJ/A2skkPu3Px0TRNC7nJxPQUWr/jYlSGDzLnA5uy', 123.00, 34.00, 'AB+', '2026-01-11 03:33:38');
-
---
 -- Indexes for dumped tables
 --
 
