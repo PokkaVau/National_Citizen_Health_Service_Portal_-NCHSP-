@@ -32,9 +32,23 @@ if (isset($_POST['book_slot'])) {
             $update->execute([$schedule_id]);
 
             $pdo->commit();
+
+            // Notify Doctor
+            require_once 'config/notifications.php';
+            // Get Doctor's Admin ID
+            $docStmt = $pdo->prepare("SELECT admin_id, name FROM doctors WHERE id = ?");
+            $docStmt->execute([$doctor_id]);
+            $docInfo = $docStmt->fetch();
+
+            if ($docInfo && $docInfo['admin_id']) {
+                $userName = $_SESSION['user_name'] ?? 'A patient'; // Ensure user_name is available or fetch it
+                createNotification($pdo, $docInfo['admin_id'], 'admin', "New appointment booked by patient for " . date('M d, h:i A', strtotime($appt_datetime)), 'info', '/dbms/doctor/dashboard.php');
+            }
+
             $message = "🎉 Appointment booked successfully! You'll receive a confirmation email shortly.";
-            // Redirect to appointments page or clear selection
-            // header("Location: my_appointments.php");
+            // Redirect to appointments page
+            header("Location: my_appointments.php?msg=" . urlencode($message));
+            exit();
         } else {
             $message = "⚠️ This time slot was just taken. Please select another slot.";
         }
@@ -46,7 +60,13 @@ if (isset($_POST['book_slot'])) {
 
 // Fetch Doctors
 try {
-    $stmt = $pdo->query("SELECT * FROM doctors ORDER BY name ASC");
+    $stmt = $pdo->query("
+        SELECT d.*, 
+               (SELECT AVG(rating) FROM doctor_reviews dr WHERE dr.doctor_id = d.id) as avg_rating,
+               (SELECT COUNT(*) FROM doctor_reviews dr WHERE dr.doctor_id = d.id) as review_count
+        FROM doctors d 
+        ORDER BY name ASC
+    ");
     $doctors = $stmt->fetchAll();
 } catch (PDOException $e) {
     $doctors = [];
@@ -58,7 +78,12 @@ $selected_doctor = null;
 if ($selected_doctor_id) {
     try {
         // Get Doctor Name
-        $stmt = $pdo->prepare("SELECT * FROM doctors WHERE id = ?");
+        $stmt = $pdo->prepare("
+            SELECT d.*, 
+               (SELECT AVG(rating) FROM doctor_reviews dr WHERE dr.doctor_id = d.id) as avg_rating,
+               (SELECT COUNT(*) FROM doctor_reviews dr WHERE dr.doctor_id = d.id) as review_count
+            FROM doctors d WHERE id = ?
+        ");
         $stmt->execute([$selected_doctor_id]);
         $selected_doctor = $stmt->fetch();
 
@@ -411,7 +436,8 @@ if ($selected_doctor_id) {
                                                 </span>
                                                 <span class="flex items-center gap-1 text-sm text-gray-600">
                                                     <span class="material-symbols-outlined text-sm">star</span>
-                                                    4.9 Rating
+                                                    <?php echo $selected_doctor['avg_rating'] ? number_format($selected_doctor['avg_rating'], 1) : 'New'; ?>
+                                                    (<?php echo $selected_doctor['review_count']; ?>)
                                                 </span>
                                             </div>
                                         </div>
@@ -474,16 +500,28 @@ if ($selected_doctor_id) {
                                                                 class="text-sm text-gray-500 ml-2">(<?php echo $day_name; ?>)</span>
                                                         </div>
                                                     </div>
-                                                    <div class="flex items-center gap-4">
+                                                    <div class="flex items-center gap-4 mb-2">
                                                         <span class="text-gray-600 font-medium flex items-center gap-2">
                                                             <span class="material-symbols-outlined text-sm">schedule</span>
                                                             <?php echo $start_time; ?> - <?php echo $end_time; ?>
                                                         </span>
+                                                    </div>
+                                                    <?php if (!empty($slot['location'])): ?>
+                                                        <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                                                            <span
+                                                                class="material-symbols-outlined text-sm text-red-500">location_on</span>
+                                                            <span><?php echo htmlspecialchars($slot['location']); ?></span>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <div class="flex items-center gap-4">
                                                         <span
                                                             class="availability-badge text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                                                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                                            Available
-                                                        </span>
+                                                            <span
+                                                                class="availability-badge text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold flex items-center gap-1">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                                                Available
+                                                            </span>
                                                     </div>
                                                 </div>
                                             </div>

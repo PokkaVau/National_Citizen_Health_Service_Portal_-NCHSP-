@@ -366,7 +366,7 @@ if ($bmi < 18.5) {
                                     <div class="relative profile-image-hover">
                                         <div
                                             class="w-32 h-32 rounded-2xl border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-primary/20 to-blue-500/20">
-                                            <?php if ($user['profile_picture']): ?>
+                                            <?php if (!empty($user['profile_picture'])): ?>
                                                 <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>"
                                                     alt="Profile" class="w-full h-full object-cover">
                                             <?php else: ?>

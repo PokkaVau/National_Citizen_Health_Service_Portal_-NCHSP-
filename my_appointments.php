@@ -8,7 +8,8 @@ $user_id = $_SESSION['user_id'];
 // Fetch all appointments for the user
 try {
     $stmt = $pdo->prepare("
-        SELECT a.*, d.name as doctor_name, d.specialization 
+        SELECT a.*, d.name as doctor_name, d.specialization,
+               (SELECT COUNT(*) FROM doctor_reviews dr WHERE dr.appointment_id = a.id) as has_review
         FROM appointments a 
         JOIN doctors d ON a.doctor_id = d.id 
         WHERE a.user_id = ? 
@@ -73,6 +74,20 @@ try {
             </a>
         </div>
 
+        <?php if (isset($_GET['msg'])): ?>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong class="font-bold">Success!</strong>
+                <span class="block sm:inline"><?php echo htmlspecialchars($_GET['msg']); ?></span>
+            </div>
+        <?php endif; ?>
+        <?php if (isset($_GET['error'])): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline"><?php echo htmlspecialchars($_GET['error']); ?></span>
+            </div>
+        <?php endif; ?>
+
+
         <?php if (count($appointments) == 0): ?>
             <div class="bg-white p-12 rounded-xl shadow-sm border border-gray-200 text-center">
                 <span class="material-symbols-outlined text-6xl text-gray-200 mb-4">event_busy</span>
@@ -90,6 +105,7 @@ try {
                                 <th class="px-6 py-4">Doctor</th>
                                 <th class="px-6 py-4">Reason</th>
                                 <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -129,6 +145,24 @@ try {
                                             <?php echo ucfirst($appt['status']); ?>
                                         </span>
                                     </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <?php if ($appt['status'] == 'completed'): ?>
+                                            <?php if ($appt['has_review']): ?>
+                                                <span
+                                                    class="inline-flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-lg border border-yellow-200">
+                                                    <span class="material-symbols-outlined text-sm">star</span>
+                                                    Reviewed
+                                                </span>
+                                            <?php else: ?>
+                                                <button
+                                                    onclick="openReviewModal(<?php echo $appt['id']; ?>, '<?php echo htmlspecialchars($appt['doctor_name']); ?>')"
+                                                    class="inline-flex items-center gap-1 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors shadow-sm">
+                                                    <span class="material-symbols-outlined text-sm">rate_review</span>
+                                                    Rate Doctor
+                                                </button>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -137,6 +171,7 @@ try {
             </div>
         <?php endif; ?>
     </div>
+    <?php include('review_modal_partial.php'); ?>
 </body>
 
 </html>

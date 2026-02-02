@@ -312,10 +312,11 @@ $campImages = [
                         <span
                             class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </a>
-                    <button
-                        class="bg-white/15 backdrop-blur-lg text-white border-2 border-white/30 px-8 py-4 rounded-xl text-lg font-bold hover:bg-white/25 transition-all duration-300 hover:border-white/40">
-                        How it works
-                    </button>
+                    <a href="doctor_register.php"
+                        class="bg-white/15 backdrop-blur-lg text-white border-2 border-white/30 px-8 py-4 rounded-xl text-lg font-bold hover:bg-white/25 transition-all duration-300 hover:border-white/40 flex items-center justify-center gap-2">
+                        Join as Doctor
+                        <span class="material-symbols-outlined">stethoscope</span>
+                    </a>
                 </div>
             </div>
         </div>

@@ -43,13 +43,15 @@ if (isset($_FILES['profile_picture'])) {
     }
 }
 
-// Handle Bio Update
+// Handle Bio and Details Update
 if (isset($_POST['update_profile'])) {
     $bio = trim($_POST['bio']);
-    $specialization = trim($_POST['specialization']); // Allow updating specialization too? Maybe.
+    $education = trim($_POST['education']);
+    $expertise = trim($_POST['expertise']);
+    $available_hours = trim($_POST['available_hours']);
 
-    $stmt = $pdo->prepare("UPDATE doctors SET bio = ?, specialization = ? WHERE id = ?");
-    if ($stmt->execute([$bio, $specialization, $doctor_id])) {
+    $stmt = $pdo->prepare("UPDATE doctors SET bio = ?, education = ?, expertise = ?, available_hours = ? WHERE id = ?");
+    if ($stmt->execute([$bio, $education, $expertise, $available_hours, $doctor_id])) {
         $message = "Profile updated successfully!";
         // Refresh
         $stmt = $pdo->prepare("SELECT * FROM doctors WHERE id = ?");
@@ -59,6 +61,31 @@ if (isset($_POST['update_profile'])) {
         $error = "Update failed.";
     }
 }
+
+// Handle Name Change Request
+if (isset($_POST['request_name_change'])) {
+    $requested_name = trim($_POST['requested_name']);
+    if (!empty($requested_name)) {
+        // Check for existing pending request
+        $stmt = $pdo->prepare("SELECT id FROM doctor_name_requests WHERE doctor_id = ? AND status = 'pending'");
+        $stmt->execute([$doctor_id]);
+        if ($stmt->fetch()) {
+            $error = "You already have a pending name change request.";
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO doctor_name_requests (doctor_id, current_name, requested_name) VALUES (?, ?, ?)");
+            if ($stmt->execute([$doctor_id, $doctor['name'], $requested_name])) {
+                $message = "Name change request submitted for admin approval.";
+            } else {
+                $error = "Failed to submit request.";
+            }
+        }
+    }
+}
+
+// Fetch Pending Request Status
+$stmt = $pdo->prepare("SELECT * FROM doctor_name_requests WHERE doctor_id = ? AND status = 'pending'");
+$stmt->execute([$doctor_id]);
+$pending_request = $stmt->fetch();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -107,7 +134,7 @@ if (isset($_POST['update_profile'])) {
                             <div
                                 class="size-32 rounded-full border-4 border-indigo-50 overflow-hidden bg-indigo-50/50 flex items-center justify-center text-indigo-200">
                                 <?php
-                                $pic = $doctor['profile_picture'];
+                                $pic = $doctor['profile_picture'] ?? null;
                                 if ($pic): ?>
                                     <img src="<?php echo htmlspecialchars($pic); ?>" class="w-full h-full object-cover">
                                 <?php else: ?>
@@ -129,15 +156,48 @@ if (isset($_POST['update_profile'])) {
                             <form action="" method="post" class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                                    <input type="text" value="<?php echo htmlspecialchars($doctor['name']); ?>" disabled
-                                        class="w-full px-3 py-2 border bg-slate-50 text-slate-500 rounded-lg cursor-not-allowed">
-                                    <p class="text-xs text-slate-400 mt-1">Contact Admin to change name.</p>
+                                    <div class="flex gap-2">
+                                        <input type="text" value="<?php echo htmlspecialchars($doctor['name']); ?>"
+                                            disabled
+                                            class="w-full px-3 py-2 border bg-slate-50 text-slate-500 rounded-lg cursor-not-allowed">
+                                        <button type="button"
+                                            onclick="document.getElementById('name-request-modal').classList.remove('hidden')"
+                                            class="bg-indigo-100 text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-200 transition-colors text-sm font-medium whitespace-nowrap">
+                                            Request Change
+                                        </button>
+                                    </div>
+                                    <?php if ($pending_request): ?>
+                                        <p class="text-xs text-amber-600 mt-1 font-medium flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">pending</span>
+                                            Pending approval for:
+                                            <?php echo htmlspecialchars($pending_request['requested_name']); ?>
+                                        </p>
+                                    <?php else: ?>
+                                        <p class="text-xs text-slate-400 mt-1">Name can only be changed by Admin approval.
+                                        </p>
+                                    <?php endif; ?>
+                                </div>
+
+
+
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Education</label>
+                                    <textarea name="education" rows="2" placeholder="e.g. MBBS, FCPS (Medicine)"
+                                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"><?php echo htmlspecialchars($doctor['education'] ?? ''); ?></textarea>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Specialization</label>
-                                    <input type="text" name="specialization"
-                                        value="<?php echo htmlspecialchars($doctor['specialization']); ?>"
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Expertise / Areas of
+                                        Interest</label>
+                                    <textarea name="expertise" rows="2" placeholder="e.g. Cardiology, Child Nutrition"
+                                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"><?php echo htmlspecialchars($doctor['expertise'] ?? ''); ?></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Most Often Available
+                                        Times</label>
+                                    <input type="text" name="available_hours" placeholder="e.g. Mon-Fri 5pm-9pm"
+                                        value="<?php echo htmlspecialchars($doctor['available_hours'] ?? ''); ?>"
                                         class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                                 </div>
 
@@ -160,6 +220,26 @@ if (isset($_POST['update_profile'])) {
             </div>
         </div>
     </main>
+    <!-- Name Request Modal -->
+    <div id="name-request-modal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Request Name Change</h3>
+            <form action="" method="post">
+                <label class="block text-sm font-medium text-slate-700 mb-2">New Name</label>
+                <input type="text" name="requested_name" required placeholder="Enter desired name"
+                    class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none mb-4">
+                <div class="flex justify-end gap-3">
+                    <button type="button"
+                        onclick="document.getElementById('name-request-modal').classList.add('hidden')"
+                        class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium">Cancel</button>
+                    <button type="submit" name="request_name_change"
+                        class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium">Submit
+                        Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </body>
 
 </html>

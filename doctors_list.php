@@ -7,7 +7,13 @@ check_user_login();
 // Actually doctors table has name and specialization. Admin table has login.
 // We just need the doctors table.
 try {
-    $stmt = $pdo->query("SELECT * FROM doctors ORDER BY name ASC");
+    $stmt = $pdo->query("
+        SELECT d.*, 
+               (SELECT AVG(rating) FROM doctor_reviews dr WHERE dr.doctor_id = d.id) as avg_rating,
+               (SELECT COUNT(*) FROM doctor_reviews dr WHERE dr.doctor_id = d.id) as review_count
+        FROM doctors d 
+        ORDER BY name ASC
+    ");
     $doctors = $stmt->fetchAll();
 } catch (PDOException $e) {
     $doctors = [];
@@ -90,7 +96,12 @@ try {
                         </div>
                         <div class="flex items-center gap-1 text-amber-500">
                             <span class="material-symbols-outlined text-lg">star</span>
-                            <span>4.8</span>
+                            <span>
+                                <?php echo $doctor['avg_rating'] ? number_format($doctor['avg_rating'], 1) : 'New'; ?>
+                                <span class="text-xs text-gray-400 ml-1">
+                                    (<?php echo $doctor['review_count']; ?> reviews)
+                                </span>
+                            </span>
                         </div>
                     </div>
 

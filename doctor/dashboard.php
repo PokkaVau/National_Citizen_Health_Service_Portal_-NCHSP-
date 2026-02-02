@@ -35,6 +35,18 @@ if (isset($_POST['update_status'])) {
         $update = $pdo->prepare("UPDATE appointments SET status = ? WHERE id = ?");
         $update->execute([$new_status, $appointment_id]);
         $message = "Appointment updated to " . $new_status;
+
+        // Notify User
+        require_once '../config/notifications.php';
+        // Get User ID from Appointment (We need to fetch it first or join in the check query)
+        $userCheck = $pdo->prepare("SELECT user_id FROM appointments WHERE id = ?");
+        $userCheck->execute([$appointment_id]);
+        $apptUser = $userCheck->fetch();
+
+        if ($apptUser) {
+            $msgType = $new_status == 'confirmed' || $new_status == 'completed' ? 'success' : 'warning';
+            createNotification($pdo, $apptUser['user_id'], 'user', "Your appointment with Dr. " . $doctor['name'] . " has been " . $new_status, $msgType, '/dbms/my_appointments.php');
+        }
     }
 }
 
@@ -78,10 +90,22 @@ $appointments = $stmt->fetchAll();
                     <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
                     <p class="text-slate-500">Welcome back, <?php echo htmlspecialchars($doctor['name']); ?></p>
                 </div>
-                <div class="hidden md:block">
-                    <span class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium">
-                        <?php echo date('l, F j, Y'); ?>
-                    </span>
+                <div class="flex items-center gap-4">
+                    <!-- Notification Bell for Doctor -->
+                    <div class="relative">
+                        <button id="notificationBtn"
+                            class="p-2 rounded-full bg-white shadow-sm hover:shadow-md transition-shadow text-slate-600 hover:text-indigo-600">
+                            <span class="material-symbols-outlined">notifications</span>
+                        </button>
+                        <span
+                            class="notification-dot hidden absolute top-0 right-0 size-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    </div>
+
+                    <div class="hidden md:block">
+                        <span class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium">
+                            <?php echo date('l, F j, Y'); ?>
+                        </span>
+                    </div>
                 </div>
             </header>
 
@@ -209,11 +233,6 @@ $appointments = $stmt->fetchAll();
                                                         title="Cancel">
                                                         <span class="material-symbols-outlined">cancel</span>
                                                     </button>
-                                                    <a href="patient_details.php?user_id=<?php echo $appt['user_id']; ?>"
-                                                        class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                        title="View Patient & Uploads">
-                                                        <span class="material-symbols-outlined">assignment_add</span>
-                                                    </a>
                                                 </form>
                                             <?php else: ?>
                                                 <span class="text-slate-400">-</span>
@@ -228,6 +247,7 @@ $appointments = $stmt->fetchAll();
             </div>
         </div>
     </main>
+    <script src="../js/notifications.js"></script>
 </body>
 
 </html>

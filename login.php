@@ -1,5 +1,10 @@
 <?php
 require('config/db.php');
+
+// Configure session timeout to 24 hours
+ini_set('session.gc_maxlifetime', 86400);
+ini_set('session.cookie_lifetime', 86400);
+
 session_start();
 
 $message = "";
@@ -28,15 +33,53 @@ if (isset($_POST['login'])) {
         $admin = $stmt->fetch();
 
         if ($admin && password_verify($password, $admin['password'])) {
-            $_SESSION['admin_id'] = $admin['id'];
-            $_SESSION['admin_role'] = $admin['role'];
 
-            if ($admin['role'] == 'doctor' || $admin['role'] == 'assistant') {
-                header("Location: doctor/dashboard.php");
+            // Check if doctor and status is pending OR rejected
+            if ($admin['role'] == 'doctor') {
+                $stmtDoc = $pdo->prepare("SELECT status FROM doctors WHERE admin_id = ?");
+                $stmtDoc->execute([$admin['id']]);
+                $doc = $stmtDoc->fetch();
+
+                if ($doc && $doc['status'] == 'pending') {
+                    $message = "Your account is pending admin approval. Please wait.";
+                } else if ($doc && $doc['status'] == 'rejected') {
+                    $message = "Your account application was rejected.";
+                } else {
+                    $_SESSION['admin_id'] = $admin['id'];
+                    $_SESSION['admin_role'] = $admin['role'];
+                    header("Location: doctor/dashboard.php");
+                    exit();
+                }
             } else {
-                header("Location: admin/dashboard.php");
+                // Not a doctor (e.g. super_admin, assistant, or hospital_rep)
+                $_SESSION['admin_id'] = $admin['id'];
+                $_SESSION['admin_role'] = $admin['role'];
+
+                if ($admin['role'] == 'assistant') {
+                    header("Location: doctor/dashboard.php");
+                } elseif ($admin['role'] == 'hospital_representative') {
+                    // Fetch Hospital Id from hospital_representatives using admin_id
+                    $stmtRel = $pdo->prepare("SELECT * FROM hospital_representatives WHERE admin_id = ?");
+                    $stmtRel->execute([$admin['id']]);
+                    $link = $stmtRel->fetch();
+
+                    if ($link) {
+                        $_SESSION['hospital_id'] = $link['hospital_id'];
+                        $_SESSION['rep_id'] = $link['id'];
+                        $_SESSION['role'] = 'hospital_rep'; // Keep this for consistency if needed, or rely on admin_role
+
+                        header("Location: hospital/dashboard.php");
+                    } else {
+                        $message = "Account exists but not assigned to any hospital.";
+                        // Clear session to prevent partial login
+                        session_unset();
+                        session_destroy();
+                    }
+                } else {
+                    header("Location: admin/dashboard.php");
+                }
+                exit();
             }
-            exit();
         } else {
             $message = "Invalid Admin credentials!";
         }
@@ -568,6 +611,22 @@ if (isset($_POST['login'])) {
                             <div>
                                 <p class="font-bold text-emerald-200">Registration Successful!</p>
                                 <p class="text-sm opacity-90 mt-1">Please login with your credentials.</p>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['doctor_registered'])): ?>
+                    <div
+                        class="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-500/30 text-blue-300 p-5 rounded-xl mb-6 font-medium animate-fade-in-up backdrop-blur-sm">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <i class="fas fa-user-clock text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-blue-200">Registration Submitted!</p>
+                                <p class="text-sm opacity-90 mt-1">Your account is pending admin approval.</p>
                             </div>
                         </div>
                     </div>

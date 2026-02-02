@@ -9,21 +9,35 @@ $message = "";
 if (isset($_POST['update_status'])) {
     $request_id = $_POST['request_id'];
     $status = $_POST['update_status'];
+    $handled_by = $_SESSION['admin_id'];
 
     try {
-        $stmt = $pdo->prepare("UPDATE blood_requests SET status = ? WHERE id = ?");
-        $stmt->execute([$status, $request_id]);
+        $stmt = $pdo->prepare("UPDATE blood_requests SET status = ?, handled_by = ? WHERE id = ?");
+        $stmt->execute([$status, $handled_by, $request_id]);
         $message = "Request status updated successfully!";
+
+        // Notify User
+        require_once '../config/notifications.php';
+        // Get User ID
+        $reqUserStmt = $pdo->prepare("SELECT user_id, patient_name FROM blood_requests WHERE id = ?");
+        $reqUserStmt->execute([$request_id]);
+        $reqUser = $reqUserStmt->fetch();
+
+        if ($reqUser) {
+            $msgType = $status == 'approved' ? 'success' : 'danger';
+            createNotification($pdo, $reqUser['user_id'], 'user', "Blood request for " . $reqUser['patient_name'] . " was " . $status, $msgType, '/dbms/dashboard.php');
+        }
     } catch (PDOException $e) {
         $message = "Error updating status: " . $e->getMessage();
     }
 }
 
-// Fetch Pending Requests
+// Fetch Pending & Handled Requests
 $stmt = $pdo->query("
-    SELECT br.*, u.name as requestor_name 
+    SELECT br.*, u.name as requestor_name, adm.username as handler_name
     FROM blood_requests br
     JOIN users u ON br.user_id = u.id 
+    LEFT JOIN admins adm ON br.handled_by = adm.id
     ORDER BY br.created_at DESC
 ");
 $requests = $stmt->fetchAll();
@@ -74,8 +88,12 @@ $requests = $stmt->fetchAll();
                         <i class="fas fa-file-medical w-5"></i> Reports
                     </a>
                     <a href="manage_blood_requests.php"
-                        class="flex items-center gap-3 px-4 py-3 text-blue-400 bg-slate-800 rounded-lg transition-colors">
+                        class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
                         <i class="fas fa-hand-holding-medical w-5"></i> Blood Requests
+                    </a>
+                    <a href="donor_access_logs.php"
+                        class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+                        <i class="fas fa-history w-5"></i> Access Logs
                     </a>
                     <a href="../logout.php"
                         class="flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-slate-800 rounded-lg transition-colors mt-8">
@@ -168,6 +186,11 @@ $requests = $stmt->fetchAll();
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $status_color; ?>">
                                             <?php echo ucfirst($req['status']); ?>
                                         </span>
+                                        <?php if ($req['handler_name']): ?>
+                                            <div class="text-xs text-slate-500 mt-1">
+                                                By: @<?php echo htmlspecialchars($req['handler_name']); ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <form action="" method="POST" class="inline-flex gap-2">

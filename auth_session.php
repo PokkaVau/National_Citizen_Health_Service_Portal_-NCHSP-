@@ -1,4 +1,13 @@
 <?php
+// Disable Caching
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+// Configure session timeout to 24 hours
+ini_set('session.gc_maxlifetime', 86400);
+ini_set('session.cookie_lifetime', 86400);
+
 session_start();
 
 // Function to check if user is logged in

@@ -341,9 +341,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                 Contact Details
                                                 <span class="required-star">*</span>
                                             </label>
-                                            <input type="tel" name="contact_number" required
+                                            <input type="tel" name="contact_number" required pattern="[0-9]{11}"
+                                                minlength="11" maxlength="11"
                                                 class="form-input w-full px-5 py-4 rounded-xl placeholder-gray-400"
-                                                placeholder="Emergency contact number">
+                                                placeholder="01712345678" title="Please enter exactly 11 digits">
                                         </div>
                                         <input type="text" name="contact_person"
                                             class="form-input w-full px-5 py-4 rounded-xl placeholder-gray-400"

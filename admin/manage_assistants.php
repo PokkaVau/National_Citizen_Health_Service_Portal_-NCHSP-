@@ -6,6 +6,39 @@ check_admin_login();
 $message = "";
 $error = "";
 
+// Handle Add Assistant
+if (isset($_POST['add_assistant'])) {
+    $name = trim($_POST['name']);
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
+    $mobile = trim($_POST['mobile']);
+    $doctor_id = !empty($_POST['doctor_id']) ? $_POST['doctor_id'] : null;
+
+    try {
+        $pdo->beginTransaction();
+
+        // 1. Create Admin Account
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("INSERT INTO admins (username, password, role) VALUES (?, ?, 'assistant')");
+        $stmt->execute([$username, $hashed_password]);
+        $admin_id = $pdo->lastInsertId();
+
+        // 2. Create Assistant Profile
+        $stmt = $pdo->prepare("INSERT INTO assistants (admin_id, doctor_id, name, mobile) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$admin_id, $doctor_id, $name, $mobile]);
+
+        $pdo->commit();
+        $message = "Assistant added successfully!";
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        if ($e->getCode() == 23000) {
+            $error = "Username already exists!";
+        } else {
+            $error = "Error adding assistant: " . $e->getMessage();
+        }
+    }
+}
+
 // Handle Delete
 if (isset($_POST['delete_assistant'])) {
     $admin_id = $_POST['admin_id'];
@@ -18,12 +51,16 @@ if (isset($_POST['delete_assistant'])) {
     }
 }
 
+// Fetch Doctors for Dropdown
+$doctors_stmt = $pdo->query("SELECT id, name FROM doctors ORDER BY name ASC");
+$doctors = $doctors_stmt->fetchAll();
+
 // Fetch Assistants
 $stmt = $pdo->query("
     SELECT ast.*, adm.username, d.name as doctor_name 
     FROM assistants ast 
     JOIN admins adm ON ast.admin_id = adm.id 
-    JOIN doctors d ON ast.doctor_id = d.id 
+    LEFT JOIN doctors d ON ast.doctor_id = d.id 
     ORDER BY ast.name ASC
 ");
 $assistants = $stmt->fetchAll();
@@ -73,6 +110,51 @@ $assistants = $stmt->fetchAll();
             </div>
         <?php endif; ?>
 
+        <!-- Add Assistant Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Add New Assistant</h3>
+            <form action="" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" name="name" required
+                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                    <input type="text" name="mobile" required pattern="[0-9]{11}" minlength="11" maxlength="11"
+                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Username (Login ID)</label>
+                    <input type="text" name="username" required
+                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" name="password" required
+                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Doctor (Optional)</label>
+                    <select name="doctor_id"
+                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">-- General Assistant (Unassigned) --</option>
+                        <?php foreach ($doctors as $doc): ?>
+                            <option value="<?php echo $doc['id']; ?>">
+                                <?php echo htmlspecialchars($doc['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" name="add_assistant"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                        Add Assistant
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <table class="w-full text-left">
                 <thead class="bg-gray-50 border-b border-gray-100">
@@ -95,7 +177,7 @@ $assistants = $stmt->fetchAll();
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
-                                <?php echo htmlspecialchars($ast['doctor_name']); ?>
+                                <?php echo $ast['doctor_name'] ? htmlspecialchars($ast['doctor_name']) : '<span class="text-gray-400 italic">General Assistant</span>'; ?>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">
                                 <?php echo htmlspecialchars($ast['mobile']); ?>

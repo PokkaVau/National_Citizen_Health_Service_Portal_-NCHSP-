@@ -43,6 +43,20 @@ $stmt = $pdo->prepare("
 $stmt->execute([$user_id]);
 $appointments = $stmt->fetchAll();
 
+// 6b. Fetch Recent Unreviewed Completed Appointment (Shortcut)
+$stmt = $pdo->prepare("
+    SELECT a.*, d.name as doctor_name 
+    FROM appointments a 
+    JOIN doctors d ON a.doctor_id = d.id 
+    WHERE a.user_id = ? 
+    AND a.status = 'completed' 
+    AND NOT EXISTS (SELECT 1 FROM doctor_reviews dr WHERE dr.appointment_id = a.id)
+    ORDER BY a.appointment_date DESC 
+    LIMIT 1
+");
+$stmt->execute([$user_id]);
+$unreviewed_appt = $stmt->fetch();
+
 // 7. Fetch Blood Requests
 try {
     $stmt = $pdo->prepare("SELECT * FROM blood_requests WHERE user_id = ? ORDER BY created_at DESC");
@@ -51,6 +65,59 @@ try {
 } catch (PDOException $e) {
     $blood_requests = [];
 }
+
+// 8. Fetch Hospital Bookings
+try {
+    $stmt = $pdo->prepare("
+        SELECT bb.*, h.name as hospital_name 
+        FROM blood_bookings bb 
+        JOIN hospitals h ON bb.hospital_id = h.id 
+        WHERE bb.user_id = ? 
+        ORDER BY bb.created_at DESC
+    ");
+    $stmt->execute([$user_id]);
+    $hospital_bookings = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $hospital_bookings = [];
+}
+
+// 9. Check if Hospital Representative - REMOVED (Users are not linked to reps)
+$is_rep = false;
+
+// 7. Calculate Health Score
+$health_score = 70; // Base score
+// BMI Calculation
+$height_m = $user['height'] / 100;
+$bmi = 0;
+if ($height_m > 0) {
+    $bmi = $user['weight'] / ($height_m * $height_m);
+}
+
+// BMI Points (Max 20)
+if ($bmi >= 18.5 && $bmi <= 24.9) {
+    $health_score += 20; // Normal weight
+} elseif (($bmi >= 17 && $bmi < 18.5) || ($bmi > 24.9 && $bmi <= 29.9)) {
+    $health_score += 10; // Slightly under/overweight
+} else {
+    $health_score += 5; // Needs attention
+}
+
+// Profile Points
+if (!empty($user['blood_type']))
+    $health_score += 5;
+if (!empty($user['mobile']))
+    $health_score += 5;
+
+// Max cap
+if ($health_score > 100)
+    $health_score = 100;
+
+// Determine status color
+$score_color = 'text-green-500';
+if ($health_score < 70)
+    $score_color = 'text-yellow-500';
+if ($health_score < 50)
+    $score_color = 'text-red-500';
 ?>
 <!DOCTYPE html>
 <html class="light" lang="en">
@@ -384,6 +451,17 @@ try {
                     <p class="text-sm font-medium">Appointments</p>
                 </a>
 
+                <a class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-100/50 text-slate-600 transition-all duration-300 group"
+                    href="user/nearby_hospitals.php">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined">local_hospital</span>
+                    </div>
+                    <p class="text-sm font-medium">Hospital Blood Reserve</p>
+                </a>
+
+
+
                 <div class="mt-8 mb-4 px-4">
                     <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Account</div>
                 </div>
@@ -404,7 +482,7 @@ try {
                 <div class="flex items-center gap-3">
                     <div class="relative">
                         <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md">
-                            <?php if ($user['profile_picture']): ?>
+                            <?php if (!empty($user['profile_picture'])): ?>
                                 <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Avatar"
                                     class="w-full h-full object-cover">
                             <?php else: ?>
@@ -484,10 +562,10 @@ try {
 
                         <!-- Notifications -->
                         <div class="relative">
-                            <button
+                            <button id="notificationBtn"
                                 class="relative p-3 text-slate-500 hover:text-primary hover:bg-slate-100 rounded-xl transition-colors duration-300">
                                 <i class="fas fa-bell text-xl"></i>
-                                <div class="notification-dot"></div>
+                                <div class="notification-dot hidden"></div>
                             </button>
                         </div>
 
@@ -526,7 +604,8 @@ try {
                                         </div>
                                         <div>
                                             <p class="text-xs text-blue-100">Health Score</p>
-                                            <p class="text-lg font-bold">85<span class="text-sm">/100</span></p>
+                                            <p class="text-lg font-bold"><?php echo $health_score; ?><span
+                                                    class="text-sm">/100</span></p>
                                         </div>
                                     </div>
 
@@ -561,9 +640,9 @@ try {
                                             stroke-width="8" />
                                         <circle class="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="white"
                                             stroke-width="8" stroke-linecap="round"
-                                            stroke-dashoffset="<?php echo 283 - (283 * 85 / 100); ?>" />
+                                            stroke-dashoffset="<?php echo 283 - (283 * $health_score / 100); ?>" />
                                         <text x="50" y="50" text-anchor="middle" dy="0.3em" fill="white" font-size="20"
-                                            font-weight="bold">85%</text>
+                                            font-weight="bold"><?php echo $health_score; ?>%</text>
                                     </svg>
                                 </div>
                             </div>
@@ -575,6 +654,32 @@ try {
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Left Column -->
                     <div class="lg:col-span-2 space-y-6">
+
+                        <!-- Review Shortcut (if applicable) -->
+                        <?php if ($unreviewed_appt): ?>
+                            <div
+                                class="glass-card rounded-2xl p-6 border border-yellow-200 bg-yellow-50/50 flex items-center justify-between animate-fade-in">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-yellow-600">
+                                        <span class="material-symbols-outlined text-2xl">rate_review</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-gray-900">How was your visit with
+                                            <?php echo htmlspecialchars($unreviewed_appt['doctor_name']); ?>?
+                                        </h3>
+                                        <p class="text-sm text-gray-600">Your feedback helps us improve.</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onclick="openReviewModal(<?php echo $unreviewed_appt['id']; ?>, '<?php echo htmlspecialchars($unreviewed_appt['doctor_name']); ?>')"
+                                    class="px-5 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-xl shadow-lg shadow-yellow-500/30 transition-all flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">stars</span>
+                                    Rate Now
+                                </button>
+                            </div>
+                        <?php endif; ?>
+
                         <!-- Health Metrics -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Weight Card -->
@@ -999,6 +1104,15 @@ try {
                                                     <span><?php echo $status_normalized === 'approved' ? 'Accepted' : ucfirst($status_normalized); ?></span>
                                                     <span><?php echo date('M d, Y', strtotime($request['created_at'])); ?></span>
                                                 </div>
+
+                                                <?php if ($status_normalized === 'approved'): ?>
+                                                    <div class="mt-3 pt-3 border-t border-green-200/50">
+                                                        <a href="view_donors.php?request_id=<?php echo $request['id']; ?>"
+                                                            class="block w-full text-center py-2 bg-white/50 hover:bg-white/80 rounded-lg text-xs font-bold text-green-800 transition-colors border border-green-200/50">
+                                                            <i class="fas fa-users mr-1"></i> View Matching Donors
+                                                        </a>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endforeach; ?>
                                     </div>
@@ -1081,6 +1195,8 @@ try {
             });
         });
     </script>
+    <?php include('review_modal_partial.php'); ?>
+    <script src="js/notifications.js"></script>
 </body>
 
 </html>

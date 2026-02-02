@@ -126,7 +126,8 @@ $assistants = $stmt->fetchAll();
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Mobile</label>
-                                <input type="text" name="mobile" required
+                                <input type="text" name="mobile" required pattern="[0-9]{11}" minlength="11"
+                                    maxlength="11"
                                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                             </div>
                             <div>

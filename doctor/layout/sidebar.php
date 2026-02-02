@@ -22,6 +22,12 @@
             <span>Schedule</span>
         </a>
 
+        <a href="checkups.php"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg <?php echo basename($_SERVER['PHP_SELF']) == 'checkups.php' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'; ?> transition-colors">
+            <span class="material-symbols-outlined">clinical_notes</span>
+            <span>Daily Checkups</span>
+        </a>
+
         <?php if (isset($_SESSION['admin_role']) && $_SESSION['admin_role'] == 'doctor'): ?>
             <a href="manage_assistants.php"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg <?php echo basename($_SERVER['PHP_SELF']) == 'manage_assistants.php' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'; ?> transition-colors">
@@ -59,6 +65,7 @@
     <nav class="space-y-4">
         <a href="dashboard.php" class="block">Dashboard</a>
         <a href="schedule.php" class="block">Schedule</a>
+        <a href="checkups.php" class="block">Daily Checkups</a>
         <?php if (isset($_SESSION['admin_role']) && $_SESSION['admin_role'] == 'doctor'): ?>
             <a href="manage_assistants.php" class="block">Assistants</a>
             <a href="profile.php" class="block">Profile</a>

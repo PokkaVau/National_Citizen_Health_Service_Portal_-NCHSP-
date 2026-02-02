@@ -323,9 +323,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 Mobile Number
                             </label>
                             <div class="relative">
-                                <input type="text" name="mobile" required
+                                <input type="text" name="mobile" required pattern="[0-9]{11}" minlength="11"
+                                    maxlength="11"
                                     class="pl-10 w-full px-4 py-3.5 border border-gray-300 rounded-xl input-focus focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                                    placeholder="9876543210">
+                                    placeholder="01712345678" title="Please enter exactly 11 digits">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fas fa-phone text-gray-400"></i>
                                 </div>
@@ -550,7 +551,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Mobile number validation
         const mobileInput = document.querySelector('input[name="mobile"]');
         mobileInput.addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, 10);
+            this.value = this.value.replace(/\D/g, '').slice(0, 11);
         });
 
         // Voter ID validation (alphanumeric)

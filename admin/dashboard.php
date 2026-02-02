@@ -222,11 +222,41 @@ $active_camps = $pdo->query("SELECT COUNT(*) FROM health_camps WHERE camp_date >
                     </span>
                 </a>
 
-                <a href="blood_requests.php"
+                <a href="manage_blood_requests.php"
                     class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all duration-300 group">
                     <span
                         class="material-symbols-outlined text-lg group-hover:text-red-400 transition-colors">bloodtype</span>
                     <span class="font-medium">Blood Requests</span>
+                    <span class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                    </span>
+                </a>
+
+                <a href="manage_hospitals.php"
+                    class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all duration-300 group">
+                    <span
+                        class="material-symbols-outlined text-lg group-hover:text-pink-400 transition-colors">local_hospital</span>
+                    <span class="font-medium">Hospitals</span>
+                    <span class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                    </span>
+                </a>
+
+                <a href="manage_representatives.php"
+                    class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all duration-300 group">
+                    <span
+                        class="material-symbols-outlined text-lg group-hover:text-cyan-400 transition-colors">admin_meds</span>
+                    <span class="font-medium">Representatives</span>
+                    <span class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                    </span>
+                </a>
+
+                <a href="monitor_hospital_system.php"
+                    class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all duration-300 group">
+                    <span
+                        class="material-symbols-outlined text-lg group-hover:text-teal-400 transition-colors">monitor_heart</span>
+                    <span class="font-medium">System Monitor</span>
                     <span class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
                         <span class="material-symbols-outlined text-sm">chevron_right</span>
                     </span>
@@ -273,11 +303,12 @@ $active_camps = $pdo->query("SELECT COUNT(*) FROM health_camps WHERE camp_date >
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="relative">
-                        <button class="p-2 rounded-full bg-white shadow-sm hover:shadow-md transition-shadow">
+                        <button id="notificationBtn"
+                            class="p-2 rounded-full bg-white shadow-sm hover:shadow-md transition-shadow">
                             <span class="material-symbols-outlined text-slate-600">notifications</span>
                         </button>
                         <span
-                            class="absolute top-0 right-0 size-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                            class="notification-dot hidden absolute top-0 right-0 size-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                     </div>
                     <div class="flex items-center gap-3 px-4 py-2 bg-white rounded-xl shadow-sm">
                         <div
@@ -379,22 +410,14 @@ $active_camps = $pdo->query("SELECT COUNT(*) FROM health_camps WHERE camp_date >
             <!-- Main Content Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Quick Actions - Enhanced -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-3">
                     <div class="glass-card p-6 rounded-2xl">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-lg font-bold text-slate-800">Quick Actions</h3>
                             <span class="text-sm text-slate-500">Most frequent tasks</span>
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <a href="manage_reports.php"
-                                class="flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-300 group hover-lift">
-                                <div
-                                    class="size-14 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                    <span class="material-symbols-outlined text-2xl text-blue-600">upload_file</span>
-                                </div>
-                                <span class="text-sm font-medium text-slate-700">Upload Report</span>
-                                <span class="text-xs text-slate-500 mt-1">Add new test results</span>
-                            </a>
+
 
                             <a href="manage_camps.php"
                                 class="flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed border-slate-200 hover:border-purple-300 hover:bg-purple-50/50 transition-all duration-300 group hover-lift">
@@ -429,63 +452,7 @@ $active_camps = $pdo->query("SELECT COUNT(*) FROM health_camps WHERE camp_date >
                     </div>
                 </div>
 
-                <!-- System Status - New -->
-                <div class="glass-card p-6 rounded-2xl">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold text-slate-800">System Status</h3>
-                        <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">All Systems
-                            OK</span>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                            <div class="flex items-center gap-3">
-                                <div class="size-8 bg-green-100 rounded-full flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-slate-700">Database</p>
-                                    <p class="text-xs text-slate-500">MySQL 8.0</p>
-                                </div>
-                            </div>
-                            <span class="text-sm text-green-600 font-medium">Online</span>
-                        </div>
 
-                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                            <div class="flex items-center gap-3">
-                                <div class="size-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-blue-600 text-sm">storage</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-slate-700">Storage</p>
-                                    <p class="text-xs text-slate-500">85% used</p>
-                                </div>
-                            </div>
-                            <div class="w-20 bg-slate-200 rounded-full h-2">
-                                <div class="bg-blue-500 h-2 rounded-full" style="width: 85%"></div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                            <div class="flex items-center gap-3">
-                                <div class="size-8 bg-amber-100 rounded-full flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-amber-600 text-sm">shield</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-slate-700">Security</p>
-                                    <p class="text-xs text-slate-500">Active protection</p>
-                                </div>
-                            </div>
-                            <span class="text-sm text-amber-600 font-medium">Secure</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 pt-6 border-t border-slate-200">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-slate-600">Last updated</span>
-                            <span class="text-slate-800 font-medium">Just now</span>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Footer Note -->
@@ -508,6 +475,7 @@ $active_camps = $pdo->query("SELECT COUNT(*) FROM health_camps WHERE camp_date >
             });
         });
     </script>
+    <script src="../js/notifications.js"></script>
 </body>
 
 </html>

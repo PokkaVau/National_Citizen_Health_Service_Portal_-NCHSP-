@@ -34,8 +34,9 @@ if (isset($_POST['add_slot'])) {
         $current_start = strtotime($date . ' ' . $start_time);
         $final_end = strtotime($date . ' ' . $end_time);
         $slots_created = 0;
+        $location = trim($_POST['location'] ?? ''); // Capture location
 
-        $stmt = $pdo->prepare("INSERT INTO doctor_schedules (doctor_id, available_date, start_time, end_time) VALUES (?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO doctor_schedules (doctor_id, available_date, start_time, end_time, location) VALUES (?, ?, ?, ?, ?)");
 
         while ($current_start < $final_end) {
             $current_end = $current_start + ($duration * 60);
@@ -48,7 +49,7 @@ if (isset($_POST['add_slot'])) {
             $slot_start_str = date('H:i:s', $current_start);
             $slot_end_str = date('H:i:s', $current_end);
 
-            if ($stmt->execute([$doctor_id, $date, $slot_start_str, $slot_end_str])) {
+            if ($stmt->execute([$doctor_id, $date, $slot_start_str, $slot_end_str, $location])) {
                 $slots_created++;
             }
 
@@ -146,6 +147,13 @@ $schedules = $stmt->fetchAll();
                             </div>
 
                             <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Location / Room
+                                    (Optional)</label>
+                                <input type="text" name="location" placeholder="e.g. Room 302, Main Clinic"
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+
+                            <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Slot Duration</label>
                                 <select name="duration"
                                     class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
@@ -176,6 +184,7 @@ $schedules = $stmt->fetchAll();
                                     <tr>
                                         <th class="px-6 py-3">Date</th>
                                         <th class="px-6 py-3">Time</th>
+                                        <th class="px-6 py-3">Location</th>
                                         <th class="px-6 py-3">Status</th>
                                         <th class="px-6 py-3 text-right">Action</th>
                                     </tr>
@@ -188,6 +197,9 @@ $schedules = $stmt->fetchAll();
                                             </td>
                                             <td class="px-6 py-4 text-slate-600">
                                                 <?php echo date('h:i A', strtotime($slot['start_time'])) . ' - ' . date('h:i A', strtotime($slot['end_time'])); ?>
+                                            </td>
+                                            <td class="px-6 py-4 text-slate-600">
+                                                <?php echo !empty($slot['location']) ? htmlspecialchars($slot['location']) : '<span class="text-slate-400 italic">Not set</span>'; ?>
                                             </td>
                                             <td class="px-6 py-4">
                                                 <?php if ($slot['is_booked']): ?>
