@@ -37,42 +37,6 @@ The **National Citizen Health Service Portal (NCHSP)** allows users to book appo
 - **AI Integration**: Groq API (for AI-powered summaries and features)
 - **Design**: Vanilla CSS & Tailwind for a modern, responsive UI
 
-## ⚙️ Installation & Setup
-
-### Prerequisites
-- **XAMPP** or **WAMP** server (or any PHP/MySQL environment).
-- **Git** (optional, for cloning).
-
-### Steps
-
-1.  **Clone the Repository**
-    ```bash
-    git clone <repository-url>
-    # OR download and extract the zip to your htdocs folder
-    ```
-    Ensure the project folder is named `dbms` (or update your URL accordingly).
-
-2.  **Database Configuration**
-    - Start Apache and MySQL modules in XAMPP.
-    - Go to **phpMyAdmin** (`http://localhost/phpmyadmin`).
-    - Create a new database named `nchsp_db`.
-    - Import the `database/nchsp_db.sql` file provided in the project.
-
-3.  **Environment Setup**
-    - The project uses a `.env` file for configuration.
-    - Ensure the `.env` file exists in the root directory with the following settings (adjust if your DB credentials differ):
-      ```env
-      DB_HOST=localhost
-      DB_NAME=nchsp_db
-      DB_USER=root
-      DB_PASS=
-      GROQ_API_KEY=your_groq_api_key_here
-      GROQ_API_URL=https://api.groq.com/openai/v1/chat/completions
-      ```
-
-4.  **Run the Application**
-    - Open your browser and navigate to:
-      `http://localhost/dbms/`
 
 ## 📂 Project Structure
 
